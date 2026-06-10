@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GI — Case Archive Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --nav:        #12233A;
+      --primary:    #0064CC;
+      --primary-h:  #015297;
+      --primary-l:  #3383D6;
+      --txt:        #1E2C3F;
+      --txt2:       #5E6974;
+      --txt3:       #8E9EAE;
+      --txt4:       #ADB9C0;
+      --border:     #E7EBF1;
+      --bg:         #F1F4F6;
+      --white:      #FFFFFF;
+      --hover-row:  #F6F8FA;
+      --success:    #458922;
+      --success-l:  #44AF69;
+      --warning:    #E75300;
+      --error:      #D3081A;
+      /* Archive */
+      --arch-purple:    #6D28D9;
+      --arch-purple-bg: #EDE9FE;
+      --arch-purple-bd: #C4B5FD;
+      --arch-amber:     #B45309;
+      --arch-amber-bg:  #FEF3C7;
+      --arch-amber-bd:  #FCD34D;
+    }
+
+    body {
+      font-family: 'Roboto', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      height: 100vh;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    .app { display:flex; flex-direction:column; height:100vh; }
+
+    /* ── Top Nav ──────────────────────────────── */
+    .top-nav {
+      height: 48px; flex-shrink:0;
+      background: var(--nav);
+      display: flex; align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+    }
+    .nav-logo {
+      display:flex; align-items:center; gap:8px;
+      font-size:14px; font-weight:700; color:#fff;
+      white-space:nowrap;
+    }
+    .nav-dot {
+      width:24px; height:24px; border-radius:50%;
+      background: var(--primary); display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+    }
+    .nav-sep { width:1px; height:18px; background:rgba(255,255,255,.25); }
+    .nav-product { font-size:14px; font-weight:500; color:rgba(255,255,255,.7); }
+    .nav-spacer { flex:1; }
+    .nav-icon { width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; color:rgba(255,255,255,.7); font-size:16px; transition:background .12s; }
+    .nav-icon:hover { background:rgba(255,255,255,.1); color:#fff; }
+    .nav-avatar { width:32px; height:32px; border-radius:50%; background:#3383D6; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#fff; cursor:pointer; }
+
+    /* ── Page container ───────────────────────── */
+    .page-body { flex:1; overflow-y:auto; }
+
+    /* ── Welcome section ──────────────────────── */
+    .welcome {
+      background: linear-gradient(135deg, #EEF4FB 0%, #DCE9F7 60%, #C8DCF3 100%);
+      padding: 24px 32px 20px;
+      position:relative; overflow:hidden;
+    }
+    .welcome::after {
+      content:''; position:absolute; right:-20px; top:-40px;
+      width:320px; height:320px; border-radius:50%;
+      background:rgba(0,100,204,.06); pointer-events:none;
+    }
+    .welcome-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
+    .welcome-h1 { font-size:22px; font-weight:700; color:var(--txt); }
+    .welcome-sub { font-size:13px; color:var(--txt2); margin-top:2px; }
+    .welcome-actions { display:flex; gap:8px; align-items:center; }
+
+    /* ── Buttons ──────────────────────────────── */
+    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:6px; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all .15s; font-family:inherit; white-space:nowrap; }
+    .btn-sm { padding:5px 12px; font-size:12px; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .btn-prim   { background:var(--primary); color:#fff; }
+    .btn-prim:not(:disabled):hover   { background:var(--primary-h); }
+    .btn-outline { background:#fff; color:var(--primary); border:1px solid var(--primary); }
+    .btn-outline:not(:disabled):hover { background:#EEF4FB; }
+    .btn-ghost  { background:transparent; color:var(--txt2); border:1px solid var(--border); }
+    .btn-ghost:hover { background:var(--hover-row); color:var(--txt); }
+    .btn-arch   { background:var(--arch-purple-bg); color:var(--arch-purple); border:1px solid var(--arch-purple-bd); }
+    .btn-arch:hover   { background:#DDD6FE; }
+    .btn-rest   { background:#ECFDF5; color:#065F46; border:1px solid #6EE7B7; }
+    .btn-rest:hover   { background:#D1FAE5; }
+
+    /* ── Recently Viewed ──────────────────────── */
+    .rv-section { padding:16px 32px; }
+    .rv-title { font-size:13px; font-weight:700; color:var(--txt); margin-bottom:12px; }
+    .rv-cards { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
+    .rv-card {
+      border-radius:8px; overflow:hidden; cursor:pointer;
+      box-shadow:0 1px 4px rgba(0,0,0,.1);
+      border:1px solid var(--border);
+      transition:box-shadow .15s;
+    }
+    .rv-card:hover { box-shadow:0 3px 10px rgba(0,0,0,.15); }
+    .rv-card-img {
+      height:90px; position:relative;
+      display:flex; align-items:center; justify-content:center;
+      font-size:28px;
+    }
+    .rv-card-chip {
+      position:absolute; top:6px; right:6px;
+      font-size:10px; font-weight:700; padding:2px 7px; border-radius:3px;
+    }
+    .rv-card-viewed { position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:10px; color:rgba(255,255,255,.85); font-weight:500; }
+    .rv-card-body { background:#fff; padding:8px 10px; }
+    .rv-card-meta { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+    .rv-avatars { display:flex; }
+    .rv-av { width:20px; height:20px; border-radius:50%; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:#fff; margin-left:-5px; }
+    .rv-av:first-child { margin-left:0; }
+    .rv-upd { font-size:10px; color:var(--primary); font-weight:500; display:flex; align-items:center; gap:3px; }
+    .rv-num { font-size:12px; font-weight:700; color:var(--primary); }
+    .rv-sub { font-size:10px; color:var(--txt3); }
+    .rv-badge-arch { background:var(--arch-purple-bg); color:var(--arch-purple); border:1px solid var(--arch-purple-bd); font-size:9px; font-weight:700; padding:1px 6px; border-radius:10px; margin-top:3px; display:inline-block; }
+
+    /* ── Case list section ────────────────────── */
+    .cases-section { background:#fff; margin:0 32px 32px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+
+    /* ── Tab nav ──────────────────────────────── */
+    .tab-nav { display:flex; align-items:center; border-bottom:1px solid var(--border); padding:0 20px; background:#fff; }
+    .tab { padding:12px 16px; font-size:13px; font-weight:500; color:var(--txt2); cursor:pointer; border-bottom:2px solid transparent; transition:all .12s; white-space:nowrap; }
+    .tab:hover { color:var(--txt); }
+    .tab.on { color:var(--primary); border-bottom-color:var(--primary); font-weight:700; }
+    .tab-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--primary); margin-left:5px; vertical-align:middle; }
+    .tab-divider { width:1px; background:var(--border); margin:12px 6px; align-self:stretch; flex-shrink:0; opacity:.45; }
+
+    /* ── Pinned section ───────────────────────── */
+    .section-label { display:flex; align-items:center; gap:6px; padding:8px 20px 6px; font-size:11px; font-weight:700; color:var(--txt3); text-transform:uppercase; letter-spacing:.07em; background:var(--bg); border-bottom:1px solid var(--border); }
+    .section-sep   { height:1px; background:var(--border); margin:0; }
+    .pin-icon      { font-size:11px; opacity:.6; flex-shrink:0; }
+    .crow.pinned   { background:#FAFBFF; }
+    .crow.pinned:hover { background:#F3F6FF; }
+
+    /* ── Filter bar ───────────────────────────── */
+    .filter-bar { display:flex; align-items:center; gap:8px; padding:10px 20px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .filter-dd { display:flex; align-items:center; gap:5px; padding:5px 11px; border:1px solid var(--border); border-radius:5px; font-size:12px; font-weight:500; color:var(--txt2); cursor:pointer; background:#fff; transition:all .12s; }
+    .filter-dd:hover { border-color:var(--txt3); color:var(--txt); }
+    .filter-clear { font-size:12px; color:var(--primary); cursor:pointer; margin-left:4px; }
+    .filter-clear:hover { text-decoration:underline; }
+    .filter-sort { font-size:12px; color:var(--txt2); margin-left:auto; display:flex; align-items:center; gap:4px; }
+    .filter-sort strong { color:var(--txt); }
+
+    /* ── Case table ───────────────────────────── */
+    .ct-head { display:grid; grid-template-columns:2.4fr 1fr 1.1fr 1fr 130px 90px 32px; padding:8px 20px; font-size:11px; font-weight:700; color:var(--txt3); text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--border); background:var(--bg); }
+    .crow { display:grid; grid-template-columns:2.4fr 1fr 1.1fr 1fr 130px 90px 32px; padding:12px 20px; border-bottom:1px solid var(--border); cursor:pointer; align-items:center; transition:background .1s; }
+    .crow:last-child { border-bottom:none; }
+    .crow:hover { background:var(--hover-row); }
+    .crow.faded { opacity:.75; }
+    .case-icon { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .case-link { font-size:13px; font-weight:700; color:var(--primary); cursor:pointer; }
+    .case-link:hover { text-decoration:underline; }
+    .case-sub { font-size:11px; color:var(--txt3); margin-top:1px; }
+    .ct-cell { font-size:13px; color:var(--txt2); }
+
+    /* ── Status badges ────────────────────────── */
+    .sbadge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:4px; font-size:11px; font-weight:700; white-space:nowrap; border:1px solid transparent; }
+    .sb-suspended   { background:#FEF2F2; color:#B91C1C; border-color:#FECACA; }
+    .sb-pending     { background:#F9FAFB; color:#374151; border-color:#D1D5DB; }
+    .sb-resolved    { background:#F0FDF4; color:#15803D; border-color:#BBF7D0; }
+    .sb-closed      { background:#DCFCE7; color:#15803D; border-color:#86EFAC; }
+    .sb-active-inv  { background:#EFF6FF; color:#1D4ED8; border-color:#BFDBFE; }
+    .sb-cold        { background:#F0F9FF; color:#0369A1; border-color:#BAE6FD; }
+    .sb-under-rev   { background:#FFF7ED; color:#C2410C; border-color:#FED7AA; }
+    /* Archive state badges */
+    .sb-archived    { background:var(--arch-purple-bg); color:var(--arch-purple); border-color:var(--arch-purple-bd); }
+    .sb-archiving   { background:var(--arch-amber-bg); color:var(--arch-amber); border-color:var(--arch-amber-bd); }
+    .sb-restoring   { background:var(--arch-amber-bg); color:var(--arch-amber); border-color:var(--arch-amber-bd); }
+    .sb-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+    @keyframes spin  { to{transform:rotate(360deg)} }
+    .pulsing { animation:pulse 1.8s ease infinite; }
+    .spinning { display:inline-block; animation:spin 1.4s linear infinite; }
+
+    /* ── Kebab ────────────────────────────────── */
+    .kw { position:relative; }
+    .kbtn { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:4px; cursor:pointer; color:var(--txt3); background:transparent; border:none; font-size:18px; letter-spacing:.04em; transition:all .12s; }
+    .kbtn:hover { background:var(--border); color:var(--txt); }
+    .kmenu { position:absolute; right:0; top:32px; background:#fff; border:1px solid var(--border); border-radius:6px; min-width:168px; z-index:300; box-shadow:0 6px 20px rgba(0,0,0,.12); padding:4px; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+    .kmenu { animation:fadeIn .1s ease; }
+    .ki { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:4px; cursor:pointer; font-size:13px; color:var(--txt); transition:background .1s; }
+    .ki:hover { background:var(--hover-row); }
+    .ki.arch  { color:var(--arch-purple); font-weight:500; }
+    .ki.arch:hover  { background:var(--arch-purple-bg); }
+    .ki.rest  { color:#065F46; font-weight:500; }
+    .ki.rest:hover  { background:#ECFDF5; }
+    .ki.red   { color:var(--error); }
+    .ki.red:hover   { background:#FEF2F2; }
+    .kdiv { height:1px; background:var(--border); margin:4px 0; }
+
+    /* ── Avatars ──────────────────────────────── */
+    .av-stack { display:flex; }
+    .av { width:28px; height:28px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; margin-left:-8px; flex-shrink:0; }
+    .av:first-child { margin-left:0; }
+    .av-count { width:28px; height:28px; border-radius:50%; border:2px solid #fff; background:#E5E7EB; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:var(--txt2); margin-left:-8px; }
+
+    /* ── Case Page ────────────────────────────── */
+    .case-page { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+    .case-header {
+      background:#fff; border-bottom:1px solid var(--border);
+      padding:10px 24px; display:flex; align-items:center; gap:14px; flex-shrink:0;
+    }
+    .back-btn { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--txt2); background:transparent; border:1px solid var(--border); font-size:16px; transition:all .12s; flex-shrink:0; }
+    .back-btn:hover { background:var(--hover-row); color:var(--txt); }
+    .case-hd-icon { width:42px; height:42px; border-radius:50%; background:#EFF6FF; border:2px solid #BFDBFE; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+    .case-hd-id { font-size:14px; font-weight:700; color:var(--primary); line-height:1.2; }
+    .case-hd-name { font-size:13px; color:var(--primary); line-height:1.2; }
+    .case-hd-meta { display:flex; align-items:center; gap:0; flex-wrap:nowrap; overflow:hidden; }
+    .meta-chip { display:flex; align-items:center; gap:5px; padding:0 12px; border-right:1px solid var(--border); font-size:12px; color:var(--txt2); white-space:nowrap; }
+    .meta-chip:first-child { padding-left:0; }
+    .meta-chip-label { font-size:11px; color:var(--txt3); display:block; margin-bottom:1px; }
+    .meta-chip-val { font-weight:500; color:var(--txt); }
+    .case-hd-actions { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; }
+    .notif-btn { position:relative; }
+    .notif-badge { position:absolute; top:-3px; right:-3px; background:#E75300; color:#fff; font-size:9px; font-weight:700; padding:1px 4px; border-radius:8px; min-width:16px; text-align:center; }
+
+    /* ── Archive/Progress banners ─────────────── */
+    .banner {
+      display:flex; align-items:center; gap:12px; padding:10px 24px; flex-shrink:0;
+    }
+    .banner-arch { background:var(--arch-purple-bg); border-bottom:1px solid var(--arch-purple-bd); }
+    .banner-prog { background:var(--arch-amber-bg); border-bottom:1px solid var(--arch-amber-bd); }
+    .banner-icon { font-size:18px; flex-shrink:0; }
+    .banner-txt { flex:1; }
+    .banner-title { font-size:13px; font-weight:700; }
+    .banner-sub   { font-size:12px; margin-top:1px; }
+    .banner-arch .banner-title { color:var(--arch-purple); }
+    .banner-arch .banner-sub   { color:#8B5CF6; }
+    .banner-prog .banner-title { color:var(--arch-amber); }
+    .banner-prog .banner-sub   { color:#D97706; }
+
+    /* ── Case body ────────────────────────────── */
+    .case-body { flex:1; overflow:hidden; display:flex; }
+    .case-left { width:268px; flex-shrink:0; border-right:1px solid var(--border); background:#fff; overflow-y:auto; }
+    .lps { padding:18px 20px; border-bottom:1px solid var(--border); }
+    .lps-title { font-size:14px; font-weight:700; color:var(--txt); margin-bottom:6px; }
+    .lps-desc  { font-size:12px; color:var(--txt3); line-height:1.5; margin-bottom:16px; }
+    .lp-field  { margin-bottom:14px; }
+    .lp-label  { font-size:11px; color:var(--txt3); margin-bottom:3px; }
+    .lp-val    { font-size:13px; font-weight:700; color:var(--txt); }
+    .lp-map { display:flex; flex-direction:column; align-items:center; text-align:center; padding:20px 16px; gap:8px; }
+    .lp-map-img { width:80px; height:60px; background:linear-gradient(135deg,#E4EDF5,#C8D8EA); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:28px; opacity:.45; margin-bottom:4px; }
+    .lp-map-title { font-size:13px; font-weight:700; color:var(--txt); }
+    .lp-map-desc  { font-size:11px; color:var(--txt3); line-height:1.55; }
+
+    .case-main { flex:1; overflow-y:auto; background:var(--bg); position:relative; }
+
+    /* Right edge icons */
+    .case-right-rail { position:absolute; right:0; top:0; bottom:0; width:40px; background:#fff; border-left:1px solid var(--border); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:8px; }
+    .rail-icon { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:5px; cursor:pointer; font-size:15px; color:var(--txt3); transition:background .12s; }
+    .rail-icon:hover { background:var(--bg); color:var(--primary); }
+
+    /* Module sections */
+    .mod-section { background:#fff; margin:16px 56px 16px 16px; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+    .mod-hd { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); }
+    .mod-title { font-size:14px; font-weight:700; color:var(--txt); }
+    .mod-filters { display:flex; align-items:center; gap:8px; padding:10px 20px; border-bottom:1px solid var(--border); }
+    .mod-search { display:flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--border); border-radius:5px; font-size:12px; color:var(--txt3); flex:1; max-width:200px; cursor:text; }
+
+    /* File table */
+    .ft-head { display:grid; grid-template-columns:28px 2.6fr 84px 1.1fr 1fr 48px 48px 110px; padding:8px 20px; font-size:10px; font-weight:700; color:var(--txt3); text-transform:uppercase; letter-spacing:.07em; background:var(--bg); border-bottom:1px solid var(--border); }
+    .file-row { display:grid; grid-template-columns:28px 2.6fr 84px 1.1fr 1fr 48px 48px 110px; padding:9px 20px; border-bottom:1px solid var(--border); align-items:center; transition:background .1s; }
+    .file-row:last-child { border-bottom:none; }
+    .file-row:hover { background:var(--hover-row); }
+    .file-badge { width:34px; height:34px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:#fff; letter-spacing:-.2px; flex-shrink:0; }
+    .file-name-cell { display:flex; align-items:center; gap:10px; overflow:hidden; }
+    .file-name-txt { font-size:13px; font-weight:600; color:var(--txt); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .file-cell { font-size:12px; color:var(--txt2); }
+    .file-user { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--txt2); }
+    .file-icon-cell { display:flex; align-items:center; justify-content:center; color:var(--txt3); font-size:15px; cursor:pointer; }
+    .file-icon-cell:hover { color:var(--primary); }
+    .file-action { display:flex; align-items:center; gap:6px; }
+    .review-link { font-size:13px; color:var(--primary); font-weight:600; cursor:pointer; }
+    .review-link:hover { text-decoration:underline; }
+    .cb { width:14px; height:14px; border:1.5px solid #D1D5DB; border-radius:3px; flex-shrink:0; cursor:pointer; }
+
+    /* Submissions */
+    .sub-filters { display:flex; align-items:center; gap:8px; padding:10px 20px; border-bottom:1px solid var(--border); }
+    .sub-sort { margin-left:auto; font-size:12px; color:var(--txt2); display:flex; align-items:center; gap:4px; white-space:nowrap; }
+    .sub-row { display:grid; grid-template-columns:130px 1fr 160px 1fr; gap:12px; padding:12px 20px; border-bottom:1px solid var(--border); align-items:center; cursor:pointer; transition:background .1s; }
+    .sub-row:last-child { border-bottom:none; }
+    .sub-row:hover { background:var(--hover-row); }
+    .sub-id { font-size:13px; font-weight:700; color:var(--txt); display:flex; align-items:center; gap:6px; }
+    .sub-cell { font-size:12px; color:var(--txt2); display:flex; align-items:center; gap:6px; }
+    .lab-id-box { font-size:11px; color:var(--txt3); background:var(--bg); border:1px solid var(--border); border-radius:4px; padding:2px 8px; white-space:nowrap; }
+
+    /* ── Widgets ──────────────────────────────── */
+    .wgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px; }
+    .wcard { background:#fff; border:1px solid var(--border); border-radius:8px; padding:16px 18px; }
+    .wlabel { font-size:10px; font-weight:700; color:var(--txt3); text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; }
+    .wval { font-size:28px; font-weight:700; color:var(--txt); }
+    .wsub { font-size:11px; color:var(--txt3); margin-top:3px; }
+
+    /* ── Details card ─────────────────────────── */
+    .dcard { background:#fff; border:1px solid var(--border); border-radius:8px; padding:16px 18px; margin-bottom:14px; }
+    .dcard-title { font-size:12px; font-weight:700; color:var(--txt3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; }
+    .drow { display:flex; gap:16px; padding:8px 0; border-bottom:1px solid var(--border); }
+    .drow:last-child { border-bottom:none; }
+    .dlbl { font-size:12px; color:var(--txt3); min-width:130px; flex-shrink:0; }
+    .dval { font-size:13px; color:var(--txt); font-weight:500; }
+    .arch-note { display:flex; align-items:center; gap:8px; margin-top:12px; padding:10px 12px; background:var(--arch-purple-bg); border:1px solid var(--arch-purple-bd); border-radius:6px; font-size:12px; color:var(--arch-purple); }
+    .prog-note  { display:flex; align-items:center; gap:8px; margin-top:12px; padding:10px 12px; background:var(--arch-amber-bg); border:1px solid var(--arch-amber-bd); border-radius:6px; font-size:12px; color:var(--arch-amber); }
+
+    /* ── Empty state ──────────────────────────── */
+    .empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:56px 24px; text-align:center; }
+    .empty-ic  { font-size:36px; margin-bottom:10px; opacity:.4; }
+    .empty-txt { font-size:14px; font-weight:700; color:var(--txt); }
+    .empty-sub { font-size:12px; color:var(--txt3); margin-top:4px; }
+
+    /* ── Dialog ───────────────────────────────── */
+    .backdrop { position:fixed; inset:0; background:rgba(30,44,63,.45); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .dlg { background:#fff; border:1px solid var(--border); border-radius:8px; width:460px; max-width:92vw; box-shadow:0 16px 48px rgba(0,0,0,.16); animation:slideUp .18s ease; }
+    .dlg-hd { padding:18px 22px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .dlg-title { font-size:16px; font-weight:700; color:var(--txt); display:flex; align-items:center; gap:8px; }
+    .dlg-x { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:4px; cursor:pointer; color:var(--txt3); background:transparent; border:none; font-size:18px; transition:all .12s; }
+    .dlg-x:hover { background:var(--hover-row); color:var(--txt); }
+    .dlg-body { padding:18px 22px; display:flex; flex-direction:column; gap:16px; }
+    .dlg-alert { display:flex; gap:12px; padding:12px 14px; border-radius:6px; }
+    .dlg-alert.arch { background:var(--arch-purple-bg); border:1px solid var(--arch-purple-bd); }
+    .dlg-alert.rest { background:#ECFDF5; border:1px solid #6EE7B7; }
+    .dlg-alert-ic { font-size:20px; flex-shrink:0; }
+    .dlg-alert-title { font-size:13px; font-weight:700; color:var(--txt); margin-bottom:3px; }
+    .dlg-alert-sub { font-size:12px; color:var(--txt2); line-height:1.5; }
+    .dlg-sec-title { font-size:11px; font-weight:700; color:var(--txt3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+    .dlg-list { list-style:none; display:flex; flex-direction:column; gap:7px; }
+    .dlg-list li { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:var(--txt2); line-height:1.5; }
+    .dlg-list li .dot { color:var(--arch-purple); font-weight:700; flex-shrink:0; margin-top:1px; }
+    .dlg-list.rest li .dot { color:#059669; }
+    .quota-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .qchip { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:500; }
+    .qchip.freed    { background:#ECFDF5; color:#065F46; border:1px solid #6EE7B7; }
+    .qchip.consumed { background:#FFFBEB; color:#92400E; border:1px solid #FCD34D; }
+    .dlg-precond { display:flex; align-items:flex-start; gap:8px; padding:10px 12px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; font-size:12px; color:#15803D; }
+    .dlg-ft { padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+
+    /* ── Toast ────────────────────────────────── */
+    .toast-wrap { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:2000; }
+    @keyframes toastIn { from{opacity:0;transform:translateX(14px)} to{opacity:1;transform:translateX(0)} }
+    .toast { display:flex; align-items:flex-start; gap:10px; padding:12px 16px; background:#fff; border:1px solid var(--border); border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.12); min-width:270px; max-width:340px; animation:toastIn .18s ease; }
+    .toast-ic  { font-size:16px; flex-shrink:0; }
+    .toast-txt { font-size:13px; font-weight:700; color:var(--txt); }
+    .toast-sub { font-size:11px; color:var(--txt2); margin-top:2px; }
+
+
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const COLORS = ['#6366F1','#10B981','#F59E0B','#EF4444','#8B5CF6','#3B82F6','#EC4899'];
+const CASES = [
+  { id:'1', name:'Operation Nighthawk', num:'05-CV-07959', type:'Homicide', unit:'Robbery Unit', caseStatus:'Active Investigation', caseStatusKey:'active-inv', archiveStatus:'active', pinned:true, officer:'James Doakes', created:'2024-03-15 09:30', emoji:'🚔', colorIdx:0, subjects:3, files:12, tasks:4, desc:'Investigation into the death of Marcus Webb at Riverside Park. Suspect identified through CDR analysis.' },
+  { id:'2', name:'Narcotics Ring – South District', num:'05-CV-07864', type:'Narcotics', unit:'Narcotics Unit', caseStatus:'Suspended', caseStatusKey:'suspended', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2024-01-08 14:12', emoji:'⚖️', colorIdx:1, subjects:7, files:34, tasks:2, desc:'Ongoing investigation into a narcotics distribution network operating in the south district.' },
+  { id:'3', name:'Vehicle Theft Ring', num:'05-CV-064821', type:'Property Crime', unit:'Property Crimes', caseStatus:'Closed by Arrest', caseStatusKey:'closed', archiveStatus:'archived', pinned:true, officer:'Maria Dexter', created:'2023-06-20 11:45', emoji:'🚗', colorIdx:3, subjects:2, files:8, tasks:0, desc:'Closed case. All 4 subjects arrested and charged. Evidence submitted to prosecution.' },
+  { id:'4', name:'Financial Fraud – Torres Group', num:'05-CV-06210', type:'Financial Fraud', unit:'Fraud Unit', caseStatus:'Resolved', caseStatusKey:'resolved', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2023-09-02 08:43', emoji:'💼', colorIdx:4, subjects:4, files:21, tasks:1, desc:'Money laundering scheme involving real estate transactions. Case resolved, prosecution in progress.' },
+  { id:'5', name:'Organized Crime – Vega Network', num:'05-CV-05533', type:'Organized Crime', unit:'Organized Crime', caseStatus:'Closed', caseStatusKey:'closed', archiveStatus:'archived', pinned:false, officer:'James Doakes', created:'2022-11-30 16:00', emoji:'🕵️', colorIdx:5, subjects:11, files:56, tasks:0, desc:'Multi-year investigation into the Vega crime network. 9 convictions secured.' },
+  { id:'6', name:'Missing Persons – Johnson Family', num:'05-CV-04981', type:'Missing Persons', unit:'Special Victims', caseStatus:'Under Review', caseStatusKey:'under-rev', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2024-05-01 10:00', emoji:'🔍', colorIdx:6, subjects:3, files:9, tasks:5, desc:'Missing persons case currently under supervisor review prior to trial preparation.' },
+];
+
+const STATUS_STYLE = {
+  'active-inv': 'sb-active-inv',
+  'suspended':  'sb-suspended',
+  'resolved':   'sb-resolved',
+  'closed':     'sb-closed',
+  'cold':       'sb-cold',
+  'under-rev':  'sb-under-rev',
+  'pending':    'sb-pending',
+};
+
+const CASE_TABS = ['Overview','Subjects','Locations','Files','CDR','Crimelines','Tasks','Submissions','Notes','Reports'];
+
+let _tid = 0;
+
+/* ══ APP ═══════════════════════════════════════ */
+function App() {
+  const [cases, setCases] = useState(CASES);
+  const [view, setView] = useState('dashboard');
+  const [caseId, setCaseId] = useState(null);
+  const [dashTab, setDashTab] = useState('active');
+  const [dialog, setDialog] = useState(null);
+  const [kebab, setKebab] = useState(null);
+  const [toasts, setToasts] = useState([]);
+  const [caseTab, setCaseTab] = useState('overview');
+
+  const cur = cases.find(c => c.id === caseId);
+
+  function toast(icon, text, sub) {
+    const id = ++_tid;
+    setToasts(t => [...t, { id, icon, text, sub }]);
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 5000);
+  }
+
+  function patch(id, u) { setCases(cs => cs.map(c => c.id === id ? {...c,...u} : c)); }
+
+  function confirmArchive() {
+    const { id, from } = dialog; setDialog(null);
+    if (from === 'case') { setView('dashboard'); setCaseId(null); }
+    patch(id, { archiveStatus:'archiving' });
+    toast('📦', 'Archiving started', 'Case is being moved to Archive storage…');
+    setTimeout(() => { patch(id, { archiveStatus:'archived' }); toast('✓', 'Case archived', 'Case is now in read-only Archive storage.'); }, 3800);
+  }
+
+  function confirmRestore() {
+    const { id, from } = dialog; setDialog(null);
+    if (from === 'case') { setView('dashboard'); setCaseId(null); }
+    patch(id, { archiveStatus:'restoring' });
+    toast('↩', 'Restore started', 'Case is being moved back to Active storage…');
+    setTimeout(() => { patch(id, { archiveStatus:'active' }); toast('✓', 'Case restored', 'Case is fully active again.'); }, 3800);
+  }
+
+  function togglePin(id) { setCases(cs => cs.map(c => c.id===id ? {...c, pinned:!c.pinned} : c)); }
+  function openCase(id) { setCaseId(id); setView('case'); setCaseTab('overview'); }
+  function goBack()     { setView('dashboard'); setCaseId(null); }
+
+  return (
+    <div className="app" onClick={() => setKebab(null)}>
+      <TopNav />
+      <div className="page-body" style={{display:view==='case'?'flex':undefined, flexDirection:'column', overflow:view==='case'?'hidden':undefined, flex:view==='case'?1:undefined}}>
+        {view === 'dashboard'
+          ? <Dashboard
+              cases={cases} dashTab={dashTab} setDashTab={setDashTab}
+              openCase={openCase} kebab={kebab} setKebab={setKebab}
+              onArchive={id => { setKebab(null); setDialog({type:'archive',id,from:'dash'}); }}
+              onRestore={id => { setKebab(null); setDialog({type:'restore',id,from:'dash'}); }}
+              onPin={id => { setKebab(null); togglePin(id); }}
+            />
+          : <CasePage
+              c={cur} tab={caseTab} setTab={setCaseTab} onBack={goBack}
+              onArchive={() => setDialog({type:'archive',id:caseId,from:'case'})}
+              onRestore={() => setDialog({type:'restore',id:caseId,from:'case'})}
+            />
+        }
+      </div>
+      {dialog?.type==='archive' && <ArchiveDialog name={cases.find(c=>c.id===dialog.id)?.name} onOk={confirmArchive} onCancel={()=>setDialog(null)} />}
+      {dialog?.type==='restore' && <RestoreDialog name={cases.find(c=>c.id===dialog.id)?.name} onOk={confirmRestore} onCancel={()=>setDialog(null)} />}
+      <ToastStack toasts={toasts} />
+    </div>
+  );
+}
+
+/* ══ TOP NAV ════════════════════════════════════ */
+function TopNav() {
+  return (
+    <div className="top-nav">
+      <div className="nav-logo">
+        <div className="nav-dot">C</div>
+        Cellebrite Guardian
+      </div>
+      <div className="nav-sep"/>
+      <div className="nav-product">Investigate</div>
+      <div className="nav-spacer"/>
+      <div className="nav-icon" title="Help">?</div>
+      <div className="nav-icon" style={{position:'relative'}}>
+        🔔
+        <span style={{position:'absolute',top:2,right:2,background:'#E75300',color:'#fff',fontSize:8,fontWeight:700,padding:'1px 3px',borderRadius:8,minWidth:14,textAlign:'center',lineHeight:'12px'}}>4</span>
+      </div>
+      <div className="nav-avatar">JD</div>
+      <div className="nav-icon">⊞</div>
+    </div>
+  );
+}
+
+/* ══ DASHBOARD ══════════════════════════════════ */
+function Dashboard({ cases, dashTab, setDashTab, openCase, kebab, setKebab, onArchive, onRestore, onPin }) {
+  const recentCases = cases.slice(0, 6);
+  const allCount = cases.length;
+  const activeCount   = cases.filter(c=>['active','archiving'].includes(c.archiveStatus)).length;
+  const archivedCount = cases.filter(c=>['archived','restoring'].includes(c.archiveStatus)).length;
+
+  const visible = cases.filter(c => {
+    if (dashTab === 'active')   return ['active','archiving'].includes(c.archiveStatus);
+    if (dashTab === 'archived') return ['archived','restoring'].includes(c.archiveStatus);
+    if (dashTab === 'shared')   return false;
+    return true;
+  });
+
+  const pinnedVisible   = visible.filter(c => c.pinned);
+  const regularVisible  = visible.filter(c => !c.pinned);
+
+  return (
+    <>
+      <div className="welcome">
+        <div className="welcome-top">
+          <div>
+            <div className="welcome-h1">Welcome James Doakes</div>
+            <div className="welcome-sub">{allCount} Cases &nbsp;|&nbsp; {activeCount} Active</div>
+          </div>
+          <div className="welcome-actions">
+            <div style={{display:'flex',alignItems:'center',gap:6,background:'#fff',border:'1px solid var(--border)',borderRadius:6,padding:'6px 12px'}}>
+              <span style={{color:'var(--txt3)',fontSize:14}}>🔍</span>
+              <span style={{fontSize:13,color:'var(--txt3)'}}>Search...</span>
+            </div>
+            <button className="btn btn-prim">+ Create Case</button>
+            <div className="kw" onClick={e=>e.stopPropagation()}>
+              <button className="kbtn" style={{background:'rgba(255,255,255,.15)',color:'#fff',borderRadius:4}} onClick={e=>{e.stopPropagation();setKebab(kebab==='header'?null:'header');}}>···</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rv-section">
+        <div className="rv-title">Recently Viewed</div>
+        <div className="rv-cards">
+          {recentCases.map(c => <RecentCard key={c.id} c={c} onClick={() => openCase(c.id)} />)}
+        </div>
+      </div>
+
+      <div className="cases-section">
+        <div className="tab-nav" style={{display:'flex',alignItems:'center'}}>
+          {[['active','Active Cases',activeCount],['archived','Archived',archivedCount]].map(([k,l,cnt]) => (
+            <div key={k} className={`tab ${dashTab===k?'on':''}`} onClick={()=>setDashTab(k)}>
+              {l}
+              <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',marginLeft:6,minWidth:18,height:18,padding:'0 5px',borderRadius:9,fontSize:10,fontWeight:700,background:dashTab===k?'rgba(0,100,204,.12)':'var(--bg)',color:dashTab===k?'var(--primary)':'var(--txt3)'}}>{cnt}</span>
+            </div>
+          ))}
+          <div className="tab-divider"/>
+          <div className={`tab ${dashTab==='shared'?'on':''}`} onClick={()=>setDashTab('shared')}>
+            Files Shared with Me<span className="tab-dot"/>
+          </div>
+        </div>
+
+        <div className="filter-bar">
+          <div className="filter-dd">📅 Date <span style={{fontSize:10}}>▼</span></div>
+          <div className="filter-dd">Case Type <span style={{fontSize:10}}>▼</span></div>
+          <div className="filter-dd">Status <span style={{fontSize:10}}>▼</span></div>
+          <div className="filter-dd">Case Officer <span style={{fontSize:10}}>▼</span></div>
+          <span className="filter-clear">Clear All Filters</span>
+          <div className="filter-sort">Sort by: <strong>Date created</strong> <span style={{fontSize:12}}>↕</span></div>
+        </div>
+
+        <div className="ct-head">
+          <div>Case</div><div>Unit</div><div>Status</div>
+          <div>Case Officer</div><div>Date Created</div><div>Archive</div><div></div>
+        </div>
+
+        {visible.length === 0
+          ? <div className="empty" style={{padding:'40px 24px'}}>
+              <div className="empty-ic">{dashTab==='archived'?'🗄':'📁'}</div>
+              <div className="empty-txt">{dashTab==='archived'?'No archived cases':'No cases found'}</div>
+              <div className="empty-sub">{dashTab==='archived'?'Cases you archive will appear here.':'Try adjusting your filters.'}</div>
+            </div>
+          : <>
+              {pinnedVisible.length > 0 && (
+                <>
+{pinnedVisible.map(c => (
+                    <CaseRow key={c.id} c={c}
+                      kebabOpen={kebab===c.id}
+                      onKebab={e=>{e.stopPropagation();setKebab(kebab===c.id?null:c.id);}}
+                      onClick={()=>openCase(c.id)}
+                      onArchive={()=>onArchive(c.id)}
+                      onRestore={()=>onRestore(c.id)}
+                      onPin={()=>onPin(c.id)}
+                    />
+                  ))}
+                  {regularVisible.length > 0 && <div className="section-sep"/>}
+                </>
+              )}
+              {regularVisible.map(c => (
+                <CaseRow key={c.id} c={c}
+                  kebabOpen={kebab===c.id}
+                  onKebab={e=>{e.stopPropagation();setKebab(kebab===c.id?null:c.id);}}
+                  onClick={()=>openCase(c.id)}
+                  onArchive={()=>onArchive(c.id)}
+                  onRestore={()=>onRestore(c.id)}
+                  onPin={()=>onPin(c.id)}
+                />
+              ))}
+            </>
+        }
+      </div>
+    </>
+  );
+}
+
+/* ══ RECENT CARD ════════════════════════════════ */
+function RecentCard({ c, onClick }) {
+  const gradients = [
+    'linear-gradient(135deg,#1E3A5F,#2563EB)',
+    'linear-gradient(135deg,#064E3B,#059669)',
+    'linear-gradient(135deg,#7C2D12,#EA580C)',
+    'linear-gradient(135deg,#1E1B4B,#7C3AED)',
+    'linear-gradient(135deg,#0C4A6E,#0284C7)',
+    'linear-gradient(135deg,#4A044E,#A21CAF)',
+  ];
+  const archived = ['archived','archiving','restoring'].includes(c.archiveStatus);
+  return (
+    <div className="rv-card" onClick={onClick}>
+      <div className="rv-card-img" style={{background:gradients[c.colorIdx%gradients.length]}}>
+        <span style={{fontSize:32}}>{c.emoji}</span>
+        <span className={`rv-card-chip sbadge ${STATUS_STYLE[c.caseStatusKey]||'sb-pending'}`}>{c.caseStatus}</span>
+        <span className="rv-card-viewed">Viewed {c.colorIdx===0?'2 hours':c.colorIdx===1?'8 hours':c.colorIdx===2?'1 day':c.colorIdx===3?'2 days':'3 days'} ago</span>
+      </div>
+      <div className="rv-card-body">
+        <div className="rv-card-meta">
+          <div className="rv-avatars">
+            {['#6366F1','#10B981','#F59E0B','#8B5CF6'].slice(0,3).map((col,i)=>(
+              <div key={i} className="rv-av" style={{background:col}}>{['T','A','N'][i]}</div>
+            ))}
+            <div className="rv-av" style={{background:'#E5E7EB',color:'#6B7280',fontSize:8,fontWeight:700}}>+2</div>
+          </div>
+          <span className="rv-upd"><span style={{width:6,height:6,borderRadius:'50%',background:'var(--arch-purple)',display:'inline-block'}}/>2 updates</span>
+        </div>
+        <div className="rv-num">{c.num}</div>
+        <div className="rv-sub">{c.unit} | {c.type}</div>
+        {archived && <div className="rv-badge-arch">🗄 {c.archiveStatus==='archiving'?'Archiving…':c.archiveStatus==='restoring'?'Restoring…':'Archived'}</div>}
+      </div>
+    </div>
+  );
+}
+
+/* ══ CASE ROW ═══════════════════════════════════ */
+function CaseRow({ c, kebabOpen, onKebab, onClick, onArchive, onRestore, onPin }) {
+  const prog = ['archiving','restoring'].includes(c.archiveStatus);
+  return (
+    <div className={`crow ${prog?'faded':''} ${c.pinned?'pinned':''}`} onClick={onClick}>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <div className="case-icon" style={{background:COLORS[c.colorIdx%COLORS.length]+'22'}}>
+          <span>{c.emoji}</span>
+        </div>
+        <div>
+          <div style={{display:'flex',alignItems:'center',gap:5}}>
+            <div className="case-link">{c.num}</div>
+            {c.pinned && <span className="pin-icon" title="Pinned">📌</span>}
+          </div>
+          <div className="case-sub">{c.name} | {c.type}</div>
+        </div>
+      </div>
+      <div className="ct-cell">{c.unit}</div>
+      <div><span className={`sbadge ${STATUS_STYLE[c.caseStatusKey]||'sb-pending'}`}>{c.caseStatus}</span></div>
+      <div style={{display:'flex',alignItems:'center',gap:7}}>
+        <div className="av" style={{background:COLORS[c.colorIdx%COLORS.length],width:26,height:26,fontSize:9,border:'1.5px solid #fff',marginLeft:0}}>JD</div>
+        <span className="ct-cell">{c.officer}</span>
+      </div>
+      <div className="ct-cell">{c.created}</div>
+      <div><ArchiveBadge status={c.archiveStatus}/></div>
+      <div className="kw" onClick={e=>e.stopPropagation()}>
+        <button className="kbtn" onClick={onKebab}>···</button>
+        {kebabOpen && !prog && (
+          <div className="kmenu">
+            <div className="ki" onClick={onClick}>Open Case</div>
+            <div className="ki" onClick={onClick}>Edit Case</div>
+            <div className="kdiv"/>
+            <div className="ki" onClick={onPin}>{c.pinned ? '📌 Unpin Case' : '📌 Pin Case'}</div>
+            <div className="kdiv"/>
+            {c.archiveStatus==='active'   && <div className="ki arch" onClick={onArchive}>🗄 Archive Case</div>}
+            {c.archiveStatus==='archived' && <div className="ki rest" onClick={onRestore}>↩ Restore Case</div>}
+            <div className="kdiv"/>
+            <div className="ki red">Delete Case</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ══ ARCHIVE BADGE ══════════════════════════════ */
+function ArchiveBadge({ status }) {
+  if (status==='active')    return null;
+  if (status==='archiving') return <span className="sbadge sb-archiving pulsing"><span className="sb-dot"/><span className="spinning" style={{fontSize:11}}>⟳</span>Archiving…</span>;
+  if (status==='archived')  return <span className="sbadge sb-archived"><span className="sb-dot"/>Archived</span>;
+  if (status==='restoring') return <span className="sbadge sb-restoring pulsing"><span className="sb-dot"/><span className="spinning" style={{fontSize:11}}>⟳</span>Restoring…</span>;
+  return null;
+}
+
+/* ══ CASE PAGE ══════════════════════════════════ */
+function CasePage({ c, tab, setTab, onBack, onArchive, onRestore }) {
+  if (!c) return null;
+  const [hdKebab, setHdKebab] = useState(false);
+  const archived  = c.archiveStatus==='archived';
+  const archiving = c.archiveStatus==='archiving';
+  const restoring = c.archiveStatus==='restoring';
+  const inProg    = archiving||restoring;
+
+  return (
+    <div className="case-page" onClick={() => setHdKebab(false)}>
+      {/* Case header bar */}
+      <div className="case-header">
+        <button className="back-btn" onClick={onBack}>←</button>
+        <div className="case-hd-icon">{c.emoji}</div>
+        <div>
+          <div className="case-hd-id">{c.num} <ArchiveBadge status={c.archiveStatus}/></div>
+          <div className="case-hd-name">{c.name}</div>
+        </div>
+        <div className="case-hd-meta">
+          {[['Case Officer',c.officer],['Unit',c.unit],['Creation date',c.created],['Created by',`${c.officer} (you)`],['Case age','+99 Days']].map(([l,v])=>(
+            <div key={l} className="meta-chip">
+              <div><div className="meta-chip-label">{l}</div><div className="meta-chip-val">{v}</div></div>
+            </div>
+          ))}
+          <div className="meta-chip">
+            <div>
+              <div className="meta-chip-label">Status</div>
+              <span className={`sbadge ${STATUS_STYLE[c.caseStatusKey]||'sb-pending'}`} style={{cursor:'pointer'}}>{c.caseStatus} ▾</span>
+            </div>
+          </div>
+        </div>
+        <div className="case-hd-actions">
+          <div className="av-stack">
+            {['#6366F1','#10B981','#F59E0B'].map((col,i)=>(
+              <div key={i} className="av" style={{background:col,width:28,height:28,fontSize:10}}>
+                {['AL','PY','MB'][i]}
+              </div>
+            ))}
+            <div className="av-count">+2</div>
+          </div>
+          <button className="btn btn-outline btn-sm">👤 Invite</button>
+          <div className="kw" onClick={e=>e.stopPropagation()}>
+            <button className="kbtn" style={{border:'1px solid var(--border)',borderRadius:4}} onClick={()=>setHdKebab(v=>!v)}>···</button>
+            {hdKebab && (
+              <div className="kmenu">
+                <div className="ki">📄 Create Report</div>
+                {!inProg && <><div className="kdiv"/>
+                  {!archived && <div className="ki arch" onClick={()=>{setHdKebab(false);onArchive();}}>🗄 Archive Case</div>}
+                  {archived  && <div className="ki rest" onClick={()=>{setHdKebab(false);onRestore();}}>↩ Restore Case</div>}
+                </>}
+              </div>
+            )}
+          </div>
+          <div className="nav-icon notif-btn" style={{color:'var(--txt2)',fontSize:16,width:32,height:32,border:'1px solid var(--border)',borderRadius:4}}>
+            🔔<span className="notif-badge">88</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress banner */}
+      {inProg && (
+        <div className="banner banner-prog">
+          <span className="banner-icon spinning">⟳</span>
+          <div className="banner-txt">
+            <div className="banner-title">{archiving?'Archiving in progress — case is temporarily locked':'Restore in progress — case is temporarily locked'}</div>
+            <div className="banner-sub">{archiving?'All edits, uploads, and processing are blocked until archiving completes.':'All case actions are blocked until restore completes. The case will return to fully active status.'}</div>
+          </div>
+        </div>
+      )}
+      {/* Archive banner */}
+      {archived && (
+        <div className="banner banner-arch">
+          <span className="banner-icon">🗄</span>
+          <div className="banner-txt">
+            <div className="banner-title">This case is archived and read-only</div>
+            <div className="banner-sub">Uploads, edits, processing, and file-level actions are disabled. Metadata, file lists, and event logs remain accessible.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Case body */}
+      <div className="case-body">
+        {/* Left panel */}
+        <div className="case-left">
+          <div className="lps">
+            <div className="lps-title">Crime Details</div>
+            <p className="lps-desc">Add details of the crime as you uncover them. Collaborate new findings with existing information.</p>
+            {[['Creation date', c.type],['Most serious offense','Felony'],['Offense date','Jul 21, 2023'],['Description','-']].map(([l,v])=>(
+              <div key={l} className="lp-field">
+                <div className="lp-label">{l}</div>
+                <div className="lp-val" style={v==='-'?{color:'var(--txt3)',fontWeight:400}:{}}>{v}</div>
+              </div>
+            ))}
+            <button className="btn btn-outline btn-sm" disabled={archived||inProg}>✏ Edit Details</button>
+          </div>
+          <div className="lps">
+            <div className="lp-map">
+              <div className="lp-map-img">🗺</div>
+              <div className="lp-map-title">No Locations Added Yet</div>
+              <p className="lp-map-desc">Places of importance to your case. Examples: locations of evidence, residences, and events.</p>
+              <button className="btn btn-outline btn-sm" disabled={archived||inProg} style={{marginTop:4}}>+ Add a Location</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="case-main">
+          <div style={{padding:'16px 56px 16px 16px'}}>
+            {(archived||inProg) && (
+              <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',marginBottom:12,background:archived?'var(--arch-purple-bg)':'var(--arch-amber-bg)',border:`1px solid ${archived?'var(--arch-purple-bd)':'var(--arch-amber-bd)'}`,borderRadius:7,fontSize:12,color:archived?'var(--arch-purple)':'var(--arch-amber)'}}>
+                <span>{archived?'🔒':'⟳'}</span>
+                <span>{archived?'This case is archived. Files are visible but uploads, edits, and processing are disabled.':'Operation in progress — all actions are temporarily blocked.'}</span>
+              </div>
+            )}
+          </div>
+          <CaseFiles archived={archived} inProg={inProg} fileCount={c.files} />
+          <CaseSubmissions archived={archived} inProg={inProg} />
+          {/* Right rail icons */}
+          <div className="case-right-rail">
+            <div className="rail-icon" title="Case Notes">💬</div>
+            <div className="rail-icon" title="Crimelines">⚡</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══ CASE FILES ══════════════════════════════════ */
+const FILE_DATA = [
+  { name:'Samsung Galaxy_johndo.UFDR', ext:'UFDR', bg:'#F59E0B', size:'1.2 GB', date:'2022-09-21  1:45:05 AM', user:'John Smith (You)', uInit:'JS', uCol:'#6366F1' },
+  { name:'GooglePixel3.brownfield.zip', ext:'ZIP',  bg:'#6B7280', size:'850 MB',  date:'2022-09-21  1:23:35 AM', user:'Emily Johnson',    uInit:'EJ', uCol:'#8B5CF6' },
+  { name:'OnePlusNord_victor.exploit.pdf', ext:'PDF', bg:'#EF4444', size:'2.3 GB', date:'2022-09-21  1:12:20 AM', user:'Michael Brown',   uInit:'MB', uCol:'#3B82F6' },
+  { name:'Nokia3310_hacker_notes.csv', ext:'CSV',  bg:'#10B981', size:'500 MB',  date:'2022-09-21  1:01:00 AM', user:'Sarah Davis',      uInit:'SD', uCol:'#059669' },
+  { name:'XiaomiMi10_data_breach.pptx', ext:'PPTX', bg:'#F97316', size:'1.5 GB', date:'2022-09-21 12:50:45 AM', user:'David Wilson',    uInit:'DW', uCol:'#8B5CF6' },
+  { name:'SonyXperia5_vulnerability.docx', ext:'DOCX', bg:'#3B82F6', size:'750 MB', date:'2022-09-21 12:40:30 AM', user:'Sophia Garcia', uInit:'SG', uCol:'#EC4899' },
+];
+
+function CaseFiles({ archived, inProg, fileCount }) {
+  return (
+    <div className="mod-section">
+      <div className="mod-hd">
+        <div className="mod-title">Case Files ({fileCount})</div>
+        <button className="btn btn-outline btn-sm" disabled={archived||inProg}>+ Upload ▾</button>
+      </div>
+      <div className="mod-filters">
+        <div className="mod-search"><span style={{color:'var(--txt3)'}}>🔍</span> Search file...</div>
+        <div className="filter-dd">📅 Date <span style={{fontSize:10}}>▼</span></div>
+        <div className="filter-dd">Type <span style={{fontSize:10}}>▼</span></div>
+        <div className="filter-dd">Uploaded by <span style={{fontSize:10}}>▼</span></div>
+      </div>
+      <div className="ft-head">
+        <div></div><div>File Name</div><div>File Size</div>
+        <div>Uploaded Date ↓</div><div>Uploaded By</div>
+        <div>Comment</div><div>Info</div><div>Action</div>
+      </div>
+      {FILE_DATA.map((f,i) => (
+        <div key={i} className="file-row">
+          <div><div className="cb"/></div>
+          <div className="file-name-cell">
+            <div className="file-badge" style={{background:f.bg}}>{f.ext}</div>
+            <span className="file-name-txt">{f.name}</span>
+          </div>
+          <div className="file-cell">{f.size}</div>
+          <div className="file-cell">{f.date}</div>
+          <div className="file-user">
+            <div className="av" style={{background:f.uCol,width:24,height:24,fontSize:8,border:'1.5px solid #fff',marginLeft:0,flexShrink:0}}>{f.uInit}</div>
+            {f.user}
+          </div>
+          <div className="file-icon-cell">📄</div>
+          <div className="file-icon-cell">↗</div>
+          <div className="file-action">
+            <span className="review-link" style={{opacity:inProg?.5:1}}>Review</span>
+            <button className="kbtn" style={{width:24,height:24,fontSize:14}}>···</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ══ CASE SUBMISSIONS ════════════════════════════ */
+function CaseSubmissions({ archived, inProg }) {
+  return (
+    <div className="mod-section">
+      <div className="mod-hd">
+        <div className="mod-title">Submissions (12)</div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <button className="btn btn-outline btn-sm" disabled={archived||inProg}>+ New Lab Submission</button>
+          <button className="kbtn" style={{border:'1px solid var(--border)',borderRadius:4,fontSize:13}}>⤢</button>
+        </div>
+      </div>
+      <div className="sub-filters">
+        <div className="mod-search"><span style={{color:'var(--txt3)'}}>🔍</span> Search by submission or assignment</div>
+        <div className="filter-dd">Submitter <span style={{fontSize:10}}>▼</span></div>
+        <div className="filter-dd">Analyst <span style={{fontSize:10}}>▼</span></div>
+        <div className="filter-dd">Status <span style={{fontSize:10}}>▼</span></div>
+        <div className="sub-sort">Sort by: <strong style={{color:'var(--txt)',marginLeft:4}}>Submitted time</strong> <span>↕</span></div>
+        <div className="lab-id-box">Lab case ID: CLBT-2025-00017</div>
+      </div>
+      {[
+        { id:'CLBT-2024-0004', files:'33 Files, 12 Assignments', user:'John Smith',  uInit:'JS', uCol:'#6366F1', date:'2023-10-12, 08:55:12 (5 minutes ago)' },
+        { id:'CLBT-2024-0003', files:'12 Files, 4 Assignments',  user:'Emily Johnson', uInit:'EJ', uCol:'#8B5CF6', date:'2023-10-10, 14:22:00 (2 days ago)' },
+      ].map((s,i) => (
+        <div key={i} className="sub-row">
+          <div className="sub-id"><span style={{color:'var(--txt3)',fontSize:12}}>›</span>{s.id}</div>
+          <div className="sub-cell"><span style={{fontSize:14}}>📄</span> {s.files}</div>
+          <div className="sub-cell">
+            <div className="av" style={{background:s.uCol,width:22,height:22,fontSize:8,border:'none',marginLeft:0,flexShrink:0}}>{s.uInit}</div>
+            {s.user}
+          </div>
+          <div className="sub-cell">{s.date}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ModulePlaceholder({ name, archived, inProg }) {
+  return (
+    <div className="empty">
+      <div className="empty-ic">{archived?'🗄':inProg?'🔒':'📊'}</div>
+      <div className="empty-txt" style={{textTransform:'capitalize'}}>{name}</div>
+      <div className="empty-sub">
+        {archived?'Data visible in read-only mode. Editing and uploads are disabled.'
+          :inProg?'This module is locked while an operation is in progress.'
+          :'Module content not shown in this prototype.'}
+      </div>
+    </div>
+  );
+}
+
+/* ══ ARCHIVE DIALOG ═════════════════════════════ */
+function ArchiveDialog({ name, onOk, onCancel }) {
+  return (
+    <div className="backdrop" onClick={onCancel}>
+      <div className="dlg" onClick={e=>e.stopPropagation()}>
+        <div className="dlg-hd">
+          <div className="dlg-title">🗄 Archive Case</div>
+          <button className="dlg-x" onClick={onCancel}>×</button>
+        </div>
+        <div className="dlg-body">
+          <div className="dlg-alert arch">
+            <div className="dlg-alert-ic">⚠️</div>
+            <div>
+              <div className="dlg-alert-title">Archive "{name}"?</div>
+              <div className="dlg-alert-sub">This will lock the case and move all data to Archive storage. All case-level actions will be blocked until archiving completes.</div>
+            </div>
+          </div>
+          <div>
+            <div className="dlg-sec-title">What happens when archived</div>
+            <ul className="dlg-list">
+              <li><span className="dot">•</span><span>Case becomes <strong>read-only</strong> — no uploads, edits, processing, or deletions</span></li>
+              <li><span className="dot">•</span><span>All files move to <strong>Archive storage tier</strong> at reduced cost</span></li>
+              <li><span className="dot">•</span><span>Case is <strong>hidden from Active list</strong> by default; visible under Archived filter</span></li>
+              <li><span className="dot">•</span><span>Event logs, file lists, and metadata remain <strong>fully auditable</strong></span></li>
+              <li><span className="dot">•</span><span>Restore is <strong>manual</strong> and may take significant time</span></li>
+            </ul>
+          </div>
+          <div>
+            <div className="dlg-sec-title">Storage quota impact</div>
+            <div className="quota-row">
+              <div className="qchip freed">↑ Active capacity freed</div>
+              <div className="qchip consumed">↓ Archive capacity consumed</div>
+            </div>
+          </div>
+          <div className="dlg-precond">
+            <span>✓</span>
+            <span>Pre-conditions passed — no files in progress, no active GF assignments. Archive can proceed.</span>
+          </div>
+        </div>
+        <div className="dlg-ft">
+          <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-arch" onClick={onOk}>🗄 Archive Case</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══ RESTORE DIALOG ═════════════════════════════ */
+function RestoreDialog({ name, onOk, onCancel }) {
+  return (
+    <div className="backdrop" onClick={onCancel}>
+      <div className="dlg" onClick={e=>e.stopPropagation()}>
+        <div className="dlg-hd">
+          <div className="dlg-title">↩ Restore Case</div>
+          <button className="dlg-x" onClick={onCancel}>×</button>
+        </div>
+        <div className="dlg-body">
+          <div className="dlg-alert rest">
+            <div className="dlg-alert-ic">↩️</div>
+            <div>
+              <div className="dlg-alert-title">Restore "{name}"?</div>
+              <div className="dlg-alert-sub">Case data will be moved back to Active storage. This may take significant time depending on case size.</div>
+            </div>
+          </div>
+          <div>
+            <div className="dlg-sec-title">What happens on restore</div>
+            <ul className="dlg-list rest">
+              <li><span className="dot">•</span><span>Case returns to <strong>fully active</strong> status — all workflows re-enabled</span></li>
+              <li><span className="dot">•</span><span>All previously processed files restored <strong>exactly as archived</strong></span></li>
+              <li><span className="dot">•</span><span>Files archived before processing may require <strong>explicit processing intent</strong></span></li>
+              <li><span className="dot">•</span><span>Case reappears in the <strong>Active case list</strong> upon completion</span></li>
+              <li><span className="dot">•</span><span>Operation may take <strong>significant time</strong> — case stays locked until done</span></li>
+            </ul>
+          </div>
+          <div>
+            <div className="dlg-sec-title">Storage quota impact</div>
+            <div className="quota-row">
+              <div className="qchip consumed">↓ Active capacity consumed</div>
+              <div className="qchip freed">↑ Archive capacity freed</div>
+            </div>
+          </div>
+        </div>
+        <div className="dlg-ft">
+          <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
+          <button className="btn btn-rest" onClick={onOk}>↩ Restore Case</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══ TOASTS ═════════════════════════════════════ */
+function ToastStack({ toasts }) {
+  return (
+    <div className="toast-wrap">
+      {toasts.map(t=>(
+        <div key={t.id} className="toast">
+          <div className="toast-ic">{t.icon}</div>
+          <div><div className="toast-txt">{t.text}</div>{t.sub&&<div className="toast-sub">{t.sub}</div>}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
