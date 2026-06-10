@@ -359,6 +359,38 @@
     .qchip.consumed { background:#FFFBEB; color:#92400E; border:1px solid #FCD34D; }
     .dlg-precond { display:flex; align-items:flex-start; gap:8px; padding:10px 12px; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; font-size:12px; color:#15803D; }
     .dlg-ft { padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+    /* Time warning */
+    .time-warn { display:flex; align-items:flex-start; gap:10px; padding:11px 13px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:6px; font-size:12px; color:#92400E; line-height:1.5; }
+    /* Quota bars */
+    .quota-bars { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .qbar-label { font-size:11px; color:var(--txt3); margin-bottom:4px; display:flex; justify-content:space-between; }
+    .qbar-track { height:6px; background:var(--border); border-radius:3px; overflow:hidden; margin-bottom:4px; }
+    .qbar-fill  { height:100%; border-radius:3px; }
+    .qbar-impact { font-size:11px; font-weight:600; }
+    /* Pre-condition blocked */
+    .precond-blocked { display:flex; gap:12px; padding:12px 14px; background:#FEF2F2; border:1px solid #FECACA; border-radius:6px; }
+    .precond-blocked-title { font-size:13px; font-weight:700; color:#B91C1C; margin-bottom:3px; }
+    .precond-blocked-sub   { font-size:12px; color:#DC2626; line-height:1.5; }
+    /* Status dropdown */
+    .status-dd { position:relative; display:inline-block; }
+    .status-dd-menu { position:absolute; top:calc(100% + 4px); right:0; background:#fff; border:1px solid var(--border); border-radius:6px; min-width:190px; z-index:400; box-shadow:0 6px 20px rgba(0,0,0,.12); padding:4px; animation:fadeIn .1s ease; }
+    .sdd-item { padding:7px 10px; border-radius:4px; cursor:pointer; font-size:13px; color:var(--txt); display:flex; align-items:center; gap:8px; transition:background .1s; }
+    .sdd-item:hover { background:var(--hover-row); }
+    .sdd-item.current { background:var(--bg); font-weight:600; }
+    /* Failed badge */
+    .sb-failed { background:#FEF2F2; color:#B91C1C; border-color:#FECACA; }
+    /* Banner fail */
+    .banner-fail { background:#FEF2F2; border-bottom:1px solid #FECACA; }
+    .banner-fail .banner-title { color:#B91C1C; }
+    .banner-fail .banner-sub   { color:#DC2626; }
+    /* Event log */
+    .ev-row { display:grid; grid-template-columns:28px 1fr 140px 130px; gap:8px; padding:10px 20px; border-bottom:1px solid var(--border); align-items:center; }
+    .ev-row:last-child { border-bottom:none; }
+    .ev-ic { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+    .ev-action { font-size:12px; font-weight:600; color:var(--txt); }
+    .ev-detail { font-size:11px; color:var(--txt3); margin-top:1px; }
+    .ev-actor { font-size:12px; color:var(--txt2); }
+    .ev-time  { font-size:11px; color:var(--txt3); text-align:right; }
 
     /* ── Toast ────────────────────────────────── */
     .toast-wrap { position:fixed; bottom:24px; right:24px; display:flex; flex-direction:column; gap:8px; z-index:2000; }
@@ -382,9 +414,9 @@ const { useState, useEffect } = React;
 const COLORS = ['#6366F1','#10B981','#F59E0B','#EF4444','#8B5CF6','#3B82F6','#EC4899'];
 const CASES = [
   { id:'1', name:'Operation Nighthawk', num:'05-CV-07959', type:'Homicide', unit:'Robbery Unit', caseStatus:'Active Investigation', caseStatusKey:'active-inv', archiveStatus:'active', pinned:true, officer:'James Doakes', created:'2024-03-15 09:30', emoji:'🚔', colorIdx:0, subjects:3, files:12, tasks:4, desc:'Investigation into the death of Marcus Webb at Riverside Park. Suspect identified through CDR analysis.' },
-  { id:'2', name:'Narcotics Ring – South District', num:'05-CV-07864', type:'Narcotics', unit:'Narcotics Unit', caseStatus:'Suspended', caseStatusKey:'suspended', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2024-01-08 14:12', emoji:'⚖️', colorIdx:1, subjects:7, files:34, tasks:2, desc:'Ongoing investigation into a narcotics distribution network operating in the south district.' },
+  { id:'2', name:'Narcotics Ring – South District', num:'05-CV-07864', type:'Narcotics', unit:'Narcotics Unit', caseStatus:'Suspended', caseStatusKey:'suspended', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2024-01-08 14:12', emoji:'⚖️', colorIdx:1, subjects:7, files:34, tasks:2, desc:'Ongoing investigation into a narcotics distribution network operating in the south district.', blockingCondition:{ label:'2 files are currently processing and 1 active submission is open. Resolve these before archiving.' } },
   { id:'3', name:'Vehicle Theft Ring', num:'05-CV-064821', type:'Property Crime', unit:'Property Crimes', caseStatus:'Closed by Arrest', caseStatusKey:'closed', archiveStatus:'archived', pinned:true, officer:'Maria Dexter', created:'2023-06-20 11:45', emoji:'🚗', colorIdx:3, subjects:2, files:8, tasks:0, desc:'Closed case. All 4 subjects arrested and charged. Evidence submitted to prosecution.' },
-  { id:'4', name:'Financial Fraud – Torres Group', num:'05-CV-06210', type:'Financial Fraud', unit:'Fraud Unit', caseStatus:'Resolved', caseStatusKey:'resolved', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2023-09-02 08:43', emoji:'💼', colorIdx:4, subjects:4, files:21, tasks:1, desc:'Money laundering scheme involving real estate transactions. Case resolved, prosecution in progress.' },
+  { id:'4', name:'Financial Fraud – Torres Group', num:'05-CV-06210', type:'Financial Fraud', unit:'Fraud Unit', caseStatus:'Resolved', caseStatusKey:'resolved', archiveStatus:'active', pinned:false, archiveWillFail:true, officer:'James Doakes', created:'2023-09-02 08:43', emoji:'💼', colorIdx:4, subjects:4, files:21, tasks:1, desc:'Money laundering scheme involving real estate transactions. Case resolved, prosecution in progress.' },
   { id:'5', name:'Organized Crime – Vega Network', num:'05-CV-05533', type:'Organized Crime', unit:'Organized Crime', caseStatus:'Closed', caseStatusKey:'closed', archiveStatus:'archived', pinned:false, officer:'James Doakes', created:'2022-11-30 16:00', emoji:'🕵️', colorIdx:5, subjects:11, files:56, tasks:0, desc:'Multi-year investigation into the Vega crime network. 9 convictions secured.' },
   { id:'6', name:'Missing Persons – Johnson Family', num:'05-CV-04981', type:'Missing Persons', unit:'Special Victims', caseStatus:'Under Review', caseStatusKey:'under-rev', archiveStatus:'active', pinned:false, officer:'James Doakes', created:'2024-05-01 10:00', emoji:'🔍', colorIdx:6, subjects:3, files:9, tasks:5, desc:'Missing persons case currently under supervisor review prior to trial preparation.' },
 ];
@@ -403,6 +435,17 @@ const CASE_TABS = ['Overview','Subjects','Locations','Files','CDR','Crimelines',
 
 let _tid = 0;
 
+const WORKFLOW_STATUSES = [
+  { key:'active-inv', label:'Active Investigation' },
+  { key:'suspended',  label:'Suspended' },
+  { key:'pending',    label:'Pending Investigation' },
+  { key:'under-rev',  label:'Under Review' },
+  { key:'resolved',   label:'Resolved' },
+  { key:'closed',     label:'Closed' },
+  { key:'closed',     label:'Closed by Arrest' },
+  { key:'cold',       label:'Cold Case' },
+];
+
 /* ══ APP ═══════════════════════════════════════ */
 function App() {
   const [cases, setCases] = useState(CASES);
@@ -413,6 +456,12 @@ function App() {
   const [kebab, setKebab] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [caseTab, setCaseTab] = useState('overview');
+  const [events, setEvents] = useState([
+    { caseId:'3', type:'archive_complete', icon:'🗄', iconBg:'#EDE9FE', actor:'Maria Dexter',  time:'Mar 12, 2026  09:14', action:'Archive completed',  detail:'Case moved to Archive storage' },
+    { caseId:'3', type:'archive_start',    icon:'📦', iconBg:'#FEF3C7', actor:'Maria Dexter',  time:'Mar 12, 2026  09:10', action:'Archive initiated',  detail:'Archive operation started by user' },
+    { caseId:'5', type:'archive_complete', icon:'🗄', iconBg:'#EDE9FE', actor:'James Doakes',  time:'Oct 22, 2025  16:33', action:'Archive completed',  detail:'Case moved to Archive storage' },
+    { caseId:'5', type:'archive_start',    icon:'📦', iconBg:'#FEF3C7', actor:'James Doakes',  time:'Oct 22, 2025  16:30', action:'Archive initiated',  detail:'Archive operation started by user' },
+  ]);
 
   const cur = cases.find(c => c.id === caseId);
 
@@ -424,25 +473,54 @@ function App() {
 
   function patch(id, u) { setCases(cs => cs.map(c => c.id === id ? {...c,...u} : c)); }
 
+  function addEvent(caseId, type, icon, iconBg, actor, action, detail) {
+    const now = new Date();
+    const time = now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + '  ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    setEvents(ev => [{ caseId, type, icon, iconBg, actor, time, action, detail }, ...ev]);
+  }
+
   function confirmArchive() {
-    const { id, from } = dialog; setDialog(null);
+    const { id, from } = dialog;
+    const c = cases.find(x => x.id === id);
+    setDialog(null);
     if (from === 'case') { setView('dashboard'); setCaseId(null); }
     patch(id, { archiveStatus:'archiving' });
+    addEvent(id, 'archive_start', '📦', '#FEF3C7', 'James Doakes', 'Archive initiated', 'Archive operation started by user');
     toast('📦', 'Archiving started', 'Case is being moved to Archive storage…');
-    setTimeout(() => { patch(id, { archiveStatus:'archived' }); toast('✓', 'Case archived', 'Case is now in read-only Archive storage.'); }, 3800);
+    setTimeout(() => {
+      if (c?.archiveWillFail) {
+        patch(id, { archiveStatus:'failed' });
+        addEvent(id, 'archive_failed', '⚠️', '#FEF2F2', 'System', 'Archive failed', 'Storage tier transition error — case remains active');
+        toast('⚠️', 'Archive failed', 'An error occurred. The case remains active. You can retry.');
+      } else {
+        patch(id, { archiveStatus:'archived' });
+        addEvent(id, 'archive_complete', '🗄', '#EDE9FE', 'System', 'Archive completed', 'Case moved to Archive storage');
+        toast('✓', 'Case archived', 'Case is now in read-only Archive storage.');
+      }
+    }, 3800);
   }
 
   function confirmRestore() {
     const { id, from } = dialog; setDialog(null);
     if (from === 'case') { setView('dashboard'); setCaseId(null); }
     patch(id, { archiveStatus:'restoring' });
+    addEvent(id, 'restore_start', '↩', '#ECFDF5', 'James Doakes', 'Restore initiated', 'Restore operation started by user');
     toast('↩', 'Restore started', 'Case is being moved back to Active storage…');
-    setTimeout(() => { patch(id, { archiveStatus:'active' }); toast('✓', 'Case restored', 'Case is fully active again.'); }, 3800);
+    setTimeout(() => {
+      patch(id, { archiveStatus:'active' });
+      addEvent(id, 'restore_complete', '✓', '#DCFCE7', 'System', 'Restore completed', 'Case returned to Active storage');
+      toast('✓', 'Case restored', 'Case is fully active again.');
+    }, 3800);
   }
 
   function togglePin(id) { setCases(cs => cs.map(c => c.id===id ? {...c, pinned:!c.pinned} : c)); }
   function openCase(id) { setCaseId(id); setView('case'); setCaseTab('overview'); }
   function goBack()     { setView('dashboard'); setCaseId(null); }
+
+  function openArchiveDialog(id, from) {
+    const c = cases.find(x => x.id === id);
+    setDialog({ type:'archive', id, from, blocked: c?.blockingCondition || null });
+  }
 
   return (
     <div className="app" onClick={() => setKebab(null)}>
@@ -452,18 +530,20 @@ function App() {
           ? <Dashboard
               cases={cases} dashTab={dashTab} setDashTab={setDashTab}
               openCase={openCase} kebab={kebab} setKebab={setKebab}
-              onArchive={id => { setKebab(null); setDialog({type:'archive',id,from:'dash'}); }}
+              onArchive={id => { setKebab(null); openArchiveDialog(id,'dash'); }}
               onRestore={id => { setKebab(null); setDialog({type:'restore',id,from:'dash'}); }}
               onPin={id => { setKebab(null); togglePin(id); }}
             />
           : <CasePage
               c={cur} tab={caseTab} setTab={setCaseTab} onBack={goBack}
-              onArchive={() => setDialog({type:'archive',id:caseId,from:'case'})}
+              events={events.filter(e=>e.caseId===caseId)}
+              onArchive={() => openArchiveDialog(caseId,'case')}
               onRestore={() => setDialog({type:'restore',id:caseId,from:'case'})}
+              onStatusChange={(newStatus, newKey) => patch(caseId, {caseStatus:newStatus, caseStatusKey:newKey})}
             />
         }
       </div>
-      {dialog?.type==='archive' && <ArchiveDialog name={cases.find(c=>c.id===dialog.id)?.name} onOk={confirmArchive} onCancel={()=>setDialog(null)} />}
+      {dialog?.type==='archive' && <ArchiveDialog name={cases.find(c=>c.id===dialog.id)?.name} blocked={dialog.blocked} onOk={confirmArchive} onCancel={()=>setDialog(null)} />}
       {dialog?.type==='restore' && <RestoreDialog name={cases.find(c=>c.id===dialog.id)?.name} onOk={confirmRestore} onCancel={()=>setDialog(null)} />}
       <ToastStack toasts={toasts} />
     </div>
@@ -674,7 +754,11 @@ function CaseRow({ c, kebabOpen, onKebab, onClick, onArchive, onRestore, onPin }
             <div className="kdiv"/>
             <div className="ki" onClick={onPin}>{c.pinned ? '📌 Unpin Case' : '📌 Pin Case'}</div>
             <div className="kdiv"/>
-            {c.archiveStatus==='active'   && <div className="ki arch" onClick={onArchive}>🗄 Archive Case</div>}
+            {(c.archiveStatus==='active'||c.archiveStatus==='failed') && (
+              c.blockingCondition
+                ? <div className="ki" style={{opacity:.45,cursor:'not-allowed',color:'var(--arch-purple)'}} title={c.blockingCondition.label}>🗄 Archive Case <span style={{fontSize:11,marginLeft:'auto'}}>⛔</span></div>
+                : <div className="ki arch" onClick={onArchive}>🗄 Archive Case</div>
+            )}
             {c.archiveStatus==='archived' && <div className="ki rest" onClick={onRestore}>↩ Restore Case</div>}
             <div className="kdiv"/>
             <div className="ki red">Delete Case</div>
@@ -691,6 +775,7 @@ function ArchiveBadge({ status }) {
   if (status==='archiving') return <span className="sbadge sb-archiving pulsing"><span className="sb-dot"/><span className="spinning" style={{fontSize:11}}>⟳</span>Archiving…</span>;
   if (status==='archived')  return <span className="sbadge sb-archived"><span className="sb-dot"/>Archived</span>;
   if (status==='restoring') return <span className="sbadge sb-restoring pulsing"><span className="sb-dot"/><span className="spinning" style={{fontSize:11}}>⟳</span>Restoring…</span>;
+  if (status==='failed')    return <span className="sbadge sb-failed"><span className="sb-dot"/>Archive Failed</span>;
   return null;
 }
 
@@ -698,13 +783,15 @@ function ArchiveBadge({ status }) {
 function CasePage({ c, tab, setTab, onBack, onArchive, onRestore }) {
   if (!c) return null;
   const [hdKebab, setHdKebab] = useState(false);
+  const [statusDd, setStatusDd] = useState(false);
   const archived  = c.archiveStatus==='archived';
   const archiving = c.archiveStatus==='archiving';
   const restoring = c.archiveStatus==='restoring';
+  const failed    = c.archiveStatus==='failed';
   const inProg    = archiving||restoring;
 
   return (
-    <div className="case-page" onClick={() => setHdKebab(false)}>
+    <div className="case-page" onClick={() => { setHdKebab(false); setStatusDd(false); }}>
       {/* Case header bar */}
       <div className="case-header">
         <button className="back-btn" onClick={onBack}>←</button>
@@ -719,10 +806,24 @@ function CasePage({ c, tab, setTab, onBack, onArchive, onRestore }) {
               <div><div className="meta-chip-label">{l}</div><div className="meta-chip-val">{v}</div></div>
             </div>
           ))}
+          {/* Status — always interactive regardless of archive state */}
           <div className="meta-chip">
-            <div>
+            <div className="status-dd" onClick={e=>e.stopPropagation()}>
               <div className="meta-chip-label">Status</div>
-              <span className={`sbadge ${STATUS_STYLE[c.caseStatusKey]||'sb-pending'}`} style={{cursor:'pointer'}}>{c.caseStatus} ▾</span>
+              <span className={`sbadge ${STATUS_STYLE[c.caseStatusKey]||'sb-pending'}`}
+                style={{cursor:'pointer'}} onClick={()=>!inProg&&setStatusDd(v=>!v)}>
+                {c.caseStatus} ▾
+              </span>
+              {statusDd && (
+                <div className="status-dd-menu">
+                  {WORKFLOW_STATUSES.map((s,i)=>(
+                    <div key={i} className={`sdd-item ${c.caseStatusKey===s.key&&c.caseStatus===s.label?'current':''}`}
+                      onClick={()=>{ onStatusChange(s.label,s.key); setStatusDd(false); }}>
+                      <span className={`sbadge ${STATUS_STYLE[s.key]||'sb-pending'}`} style={{fontSize:11,padding:'2px 7px'}}>{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -742,8 +843,12 @@ function CasePage({ c, tab, setTab, onBack, onArchive, onRestore }) {
               <div className="kmenu">
                 <div className="ki">📄 Create Report</div>
                 {!inProg && <><div className="kdiv"/>
-                  {!archived && <div className="ki arch" onClick={()=>{setHdKebab(false);onArchive();}}>🗄 Archive Case</div>}
-                  {archived  && <div className="ki rest" onClick={()=>{setHdKebab(false);onRestore();}}>↩ Restore Case</div>}
+                  {(c.archiveStatus==='active'||failed) && (
+                    c.blockingCondition
+                      ? <div className="ki" style={{opacity:.45,cursor:'not-allowed',color:'var(--arch-purple)'}} title={c.blockingCondition.label}>🗄 Archive Case <span style={{fontSize:11,marginLeft:'auto'}}>⛔</span></div>
+                      : <div className="ki arch" onClick={()=>{setHdKebab(false);onArchive();}}>🗄 Archive Case</div>
+                  )}
+                  {archived && <div className="ki rest" onClick={()=>{setHdKebab(false);onRestore();}}>↩ Restore Case</div>}
                 </>}
               </div>
             )}
@@ -774,6 +879,16 @@ function CasePage({ c, tab, setTab, onBack, onArchive, onRestore }) {
           </div>
         </div>
       )}
+      {/* Failure banner */}
+      {failed && (
+        <div className="banner banner-fail">
+          <span className="banner-icon">⚠️</span>
+          <div className="banner-txt">
+            <div className="banner-title">Archive failed — case remains active</div>
+            <div className="banner-sub">A storage tier transition error occurred. No data was affected. You can retry the archive operation from the ··· menu.</div>
+          </div>
+        </div>
+      )}
 
       {/* Case body */}
       <div className="case-body">
@@ -801,17 +916,22 @@ function CasePage({ c, tab, setTab, onBack, onArchive, onRestore }) {
         </div>
 
         {/* Main content */}
-        <div className="case-main">
-          <div style={{padding:'16px 56px 16px 16px'}}>
-            {(archived||inProg) && (
-              <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',marginBottom:12,background:archived?'var(--arch-purple-bg)':'var(--arch-amber-bg)',border:`1px solid ${archived?'var(--arch-purple-bd)':'var(--arch-amber-bd)'}`,borderRadius:7,fontSize:12,color:archived?'var(--arch-purple)':'var(--arch-amber)'}}>
-                <span>{archived?'🔒':'⟳'}</span>
-                <span>{archived?'This case is archived. Files are visible but uploads, edits, and processing are disabled.':'Operation in progress — all actions are temporarily blocked.'}</span>
+        <div className="case-main" style={{position:'relative'}}>
+          {/* Locked overlay during in-progress */}
+          {inProg && (
+            <div style={{position:'absolute',inset:0,background:'rgba(241,244,246,.55)',zIndex:10,display:'flex',alignItems:'flex-start',justifyContent:'center',paddingTop:48,pointerEvents:'none'}}>
+              <div style={{background:'#fff',border:'1px solid var(--arch-amber-bd)',borderRadius:8,padding:'14px 24px',display:'flex',alignItems:'center',gap:10,boxShadow:'0 4px 16px rgba(0,0,0,.1)',pointerEvents:'all'}}>
+                <span className="spinning" style={{fontSize:18,color:'var(--arch-amber)'}}>⟳</span>
+                <div>
+                  <div style={{fontSize:13,fontWeight:700,color:'var(--arch-amber)'}}>{archiving?'Archiving in progress':'Restore in progress'}</div>
+                  <div style={{fontSize:12,color:'var(--txt3)',marginTop:2}}>All case actions are blocked until the operation completes.</div>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <CaseFiles archived={archived} inProg={inProg} fileCount={c.files} />
           <CaseSubmissions archived={archived} inProg={inProg} />
+          <EventLog events={events} />
           {/* Right rail icons */}
           <div className="case-right-rail">
             <div className="rail-icon" title="Case Notes">💬</div>
@@ -913,6 +1033,42 @@ function CaseSubmissions({ archived, inProg }) {
   );
 }
 
+/* ══ EVENT LOG ══════════════════════════════════ */
+function EventLog({ events }) {
+  const EV_STYLE = {
+    archive_start:    { bg:'#FEF3C7', color:'#92400E' },
+    archive_complete: { bg:'#EDE9FE', color:'#6D28D9' },
+    archive_failed:   { bg:'#FEF2F2', color:'#B91C1C' },
+    restore_start:    { bg:'#ECFDF5', color:'#065F46' },
+    restore_complete: { bg:'#DCFCE7', color:'#15803D' },
+  };
+  return (
+    <div className="mod-section">
+      <div className="mod-hd">
+        <div className="mod-title">Event Log</div>
+        <span style={{fontSize:12,color:'var(--txt3)'}}>Archive &amp; Restore events</span>
+      </div>
+      {events.length === 0
+        ? <div style={{padding:'24px 20px',textAlign:'center',fontSize:12,color:'var(--txt3)'}}>No archive or restore events recorded for this case yet.</div>
+        : events.map((e,i) => {
+          const s = EV_STYLE[e.type] || { bg:'#F9FAFB', color:'#374151' };
+          return (
+            <div key={i} className="ev-row">
+              <div className="ev-ic" style={{background:s.bg}}><span style={{color:s.color}}>{e.icon}</span></div>
+              <div>
+                <div className="ev-action">{e.action}</div>
+                <div className="ev-detail">{e.detail}</div>
+              </div>
+              <div className="ev-actor">{e.actor}</div>
+              <div className="ev-time">{e.time}</div>
+            </div>
+          );
+        })
+      }
+    </div>
+  );
+}
+
 function ModulePlaceholder({ name, archived, inProg }) {
   return (
     <div className="empty">
@@ -928,7 +1084,7 @@ function ModulePlaceholder({ name, archived, inProg }) {
 }
 
 /* ══ ARCHIVE DIALOG ═════════════════════════════ */
-function ArchiveDialog({ name, onOk, onCancel }) {
+function ArchiveDialog({ name, blocked, onOk, onCancel }) {
   return (
     <div className="backdrop" onClick={onCancel}>
       <div className="dlg" onClick={e=>e.stopPropagation()}>
@@ -937,38 +1093,67 @@ function ArchiveDialog({ name, onOk, onCancel }) {
           <button className="dlg-x" onClick={onCancel}>×</button>
         </div>
         <div className="dlg-body">
-          <div className="dlg-alert arch">
-            <div className="dlg-alert-ic">⚠️</div>
-            <div>
-              <div className="dlg-alert-title">Archive "{name}"?</div>
-              <div className="dlg-alert-sub">This will lock the case and move all data to Archive storage. All case-level actions will be blocked until archiving completes.</div>
-            </div>
-          </div>
-          <div>
-            <div className="dlg-sec-title">What happens when archived</div>
-            <ul className="dlg-list">
-              <li><span className="dot">•</span><span>Case becomes <strong>read-only</strong> — no uploads, edits, processing, or deletions</span></li>
-              <li><span className="dot">•</span><span>All files move to <strong>Archive storage tier</strong> at reduced cost</span></li>
-              <li><span className="dot">•</span><span>Case is <strong>hidden from Active list</strong> by default; visible under Archived filter</span></li>
-              <li><span className="dot">•</span><span>Event logs, file lists, and metadata remain <strong>fully auditable</strong></span></li>
-              <li><span className="dot">•</span><span>Restore is <strong>manual</strong> and may take significant time</span></li>
-            </ul>
-          </div>
-          <div>
-            <div className="dlg-sec-title">Storage quota impact</div>
-            <div className="quota-row">
-              <div className="qchip freed">↑ Active capacity freed</div>
-              <div className="qchip consumed">↓ Archive capacity consumed</div>
-            </div>
-          </div>
-          <div className="dlg-precond">
-            <span>✓</span>
-            <span>Pre-conditions passed — no files in progress, no active GF assignments. Archive can proceed.</span>
-          </div>
+          {blocked ? (
+            <>
+              <div className="precond-blocked">
+                <div style={{fontSize:20,flexShrink:0}}>⛔</div>
+                <div>
+                  <div className="precond-blocked-title">Cannot archive "{name}"</div>
+                  <div className="precond-blocked-sub">{blocked.label}</div>
+                </div>
+              </div>
+              <div style={{fontSize:13,color:'var(--txt2)',lineHeight:1.6}}>
+                Resolve all blocking conditions before archiving. Once resolved, the Archive option will become available.
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="dlg-alert arch">
+                <div className="dlg-alert-ic">⚠️</div>
+                <div>
+                  <div className="dlg-alert-title">Archive "{name}"?</div>
+                  <div className="dlg-alert-sub">This will lock the case and move all data to Archive storage. All case-level actions will be blocked until archiving completes.</div>
+                </div>
+              </div>
+              <div className="time-warn">
+                <span style={{fontSize:18,flexShrink:0}}>⏱</span>
+                <div><strong>This operation may take several hours.</strong> Depending on case size, archiving can take 2–8 hours. The case will remain locked and inaccessible for editing until the operation completes.</div>
+              </div>
+              <div>
+                <div className="dlg-sec-title">What happens when archived</div>
+                <ul className="dlg-list">
+                  <li><span className="dot">•</span><span>Case becomes <strong>read-only</strong> — no uploads, edits, processing, or deletions</span></li>
+                  <li><span className="dot">•</span><span>All files move to <strong>Archive storage tier</strong> at reduced cost</span></li>
+                  <li><span className="dot">•</span><span>Case is <strong>hidden from Active list</strong> by default; visible under Archived filter</span></li>
+                  <li><span className="dot">•</span><span>Event logs, file lists, and metadata remain <strong>fully auditable</strong></span></li>
+                  <li><span className="dot">•</span><span>Restore is <strong>manual</strong> and may take significant time</span></li>
+                </ul>
+              </div>
+              <div>
+                <div className="dlg-sec-title">Storage quota</div>
+                <div className="quota-bars">
+                  <div>
+                    <div className="qbar-label"><span>Active Storage</span><span style={{fontWeight:600,color:'var(--txt)'}}>2.4 TB / 5 TB</span></div>
+                    <div className="qbar-track"><div className="qbar-fill" style={{width:'48%',background:'#3B82F6'}}/></div>
+                    <div className="qbar-impact" style={{color:'#059669'}}>↑ ~850 MB will be freed</div>
+                  </div>
+                  <div>
+                    <div className="qbar-label"><span>Archive Storage</span><span style={{fontWeight:600,color:'var(--txt)'}}>1.2 TB / 50 TB</span></div>
+                    <div className="qbar-track"><div className="qbar-fill" style={{width:'2.4%',background:'var(--arch-purple)'}}/></div>
+                    <div className="qbar-impact" style={{color:'var(--arch-amber)'}}>↓ ~850 MB will be consumed</div>
+                  </div>
+                </div>
+              </div>
+              <div className="dlg-precond">
+                <span>✓</span>
+                <span>Pre-conditions passed — no files in progress, no active GF assignments. Archive can proceed.</span>
+              </div>
+            </>
+          )}
         </div>
         <div className="dlg-ft">
           <button className="btn btn-ghost" onClick={onCancel}>Cancel</button>
-          <button className="btn btn-arch" onClick={onOk}>🗄 Archive Case</button>
+          {!blocked && <button className="btn btn-arch" onClick={onOk}>🗄 Archive Case</button>}
         </div>
       </div>
     </div>
@@ -989,8 +1174,12 @@ function RestoreDialog({ name, onOk, onCancel }) {
             <div className="dlg-alert-ic">↩️</div>
             <div>
               <div className="dlg-alert-title">Restore "{name}"?</div>
-              <div className="dlg-alert-sub">Case data will be moved back to Active storage. This may take significant time depending on case size.</div>
+              <div className="dlg-alert-sub">Case data will be moved back to Active storage.</div>
             </div>
+          </div>
+          <div className="time-warn">
+            <span style={{fontSize:18,flexShrink:0}}>⏱</span>
+            <div><strong>This operation may take several hours.</strong> Restore time depends on case size. The case will remain locked until the operation is complete. You will be notified when it's ready.</div>
           </div>
           <div>
             <div className="dlg-sec-title">What happens on restore</div>
@@ -999,14 +1188,21 @@ function RestoreDialog({ name, onOk, onCancel }) {
               <li><span className="dot">•</span><span>All previously processed files restored <strong>exactly as archived</strong></span></li>
               <li><span className="dot">•</span><span>Files archived before processing may require <strong>explicit processing intent</strong></span></li>
               <li><span className="dot">•</span><span>Case reappears in the <strong>Active case list</strong> upon completion</span></li>
-              <li><span className="dot">•</span><span>Operation may take <strong>significant time</strong> — case stays locked until done</span></li>
             </ul>
           </div>
           <div>
-            <div className="dlg-sec-title">Storage quota impact</div>
-            <div className="quota-row">
-              <div className="qchip consumed">↓ Active capacity consumed</div>
-              <div className="qchip freed">↑ Archive capacity freed</div>
+            <div className="dlg-sec-title">Storage quota</div>
+            <div className="quota-bars">
+              <div>
+                <div className="qbar-label"><span>Active Storage</span><span style={{fontWeight:600,color:'var(--txt)'}}>2.4 TB / 5 TB</span></div>
+                <div className="qbar-track"><div className="qbar-fill" style={{width:'48%',background:'#3B82F6'}}/></div>
+                <div className="qbar-impact" style={{color:'var(--arch-amber)'}}>↓ ~850 MB will be consumed</div>
+              </div>
+              <div>
+                <div className="qbar-label"><span>Archive Storage</span><span style={{fontWeight:600,color:'var(--txt)'}}>1.2 TB / 50 TB</span></div>
+                <div className="qbar-track"><div className="qbar-fill" style={{width:'2.4%',background:'var(--arch-purple)'}}/></div>
+                <div className="qbar-impact" style={{color:'#059669'}}>↑ ~850 MB will be freed</div>
+              </div>
             </div>
           </div>
         </div>
